@@ -41,8 +41,8 @@ extern std::string nowType;
 %%
 
 Program:
-    /* empty */             { /* empty */ }
-|   Program FuncDecl        { /* empty */ }
+    /* empty */             { enterScope(); }
+|   Program FuncDecl        { exitScope(); }
 ;
 
 FuncDecl:
@@ -77,19 +77,24 @@ VarDecls:
 
 VarDecl:
     Type T_Identifier      {
-                                
-                                declareVariable($1, $2);
+                                if (declareVariable(getLastType(),$2)  == -1) {
+                                    std::cerr << "Error: Variable " << $2 << " is already declared\n";
+                                    exit(1);
+                                }
                                 std::cout << "\tvar " << $2; 
                             }
 |   VarDecl ',' T_Identifier
                             {   
-                                declareVariable(lastType, $3);
+                                if (declareVariable(getLastType(),$3) == -1) {
+                                    std::cerr << "Error: Variable " << $3 << " is already declared\n";
+                                    exit(1);
+                                }
                                 std::cout << ", " << $3; }
 ;
 
 Type:
-    T_Int                   { $$ = "int"; setLastType($$); } 
-|   T_Float                 { $$ = "float"; setLastType($$); }
+    T_Int                   { std::string ts = "int"; setLastType(ts); } 
+|   T_Float                 { std::string ts = "float"; setLastType(ts); }
 ;
 
 Stmts:
@@ -107,13 +112,15 @@ Stmt:
 |   BreakStmt               { /* empty */ }
 |   ContinueStmt            { /* empty */ }
 |   VarDecls                { /* empty */ }
+|   StmtsBlock              { exitScope(); }
 ;
 
 AssignStmt:
     T_Identifier '=' Expr ';'
-                            { 
-                                if (!assignVariable($1)) {
+                            {
+                                if (isAccessible($1) != 1) {
                                     std::cerr << "Error: Variable " << $1 << " is not declared\n";
+                                    printStack();
                                     exit(1);
                                 }
                                 std::cout << "\tpop " << $1 << "\n\n"; }
@@ -160,8 +167,12 @@ TestExpr:
 ;
 
 StmtsBlock:
-    '{' Stmts '}'           { /* empty */ }
+    '{' EnterStmtsBlock Stmts '}'           { exitScope(); }
 ;
+
+EnterStmtsBlock:
+    /* empty */             { enterScope(); }
+
 
 If:
     T_If            { _BEG_IF; std::cout << "_begIf_" << _i << ":\n"; }
@@ -176,7 +187,7 @@ EndThen:
 ;
 
 Else:
-    T_Else          { /* empty */ }
+    T_Else          { enterScope(); }
 ;
 
 EndIf:
@@ -224,8 +235,19 @@ Expr:
 |   Expr T_And Expr         { std::cout << "\tand\n"; }
 |   '-' Expr %prec '!'      { std::cout << "\tneg\n"; }
 |   '!' Expr                { std::cout << "\tnot\n"; }
-|   T_IntConstant           { std::cout << "\tpush " << $1 << "\n"; }
-|   T_Identifier            { std::cout << "\tpush " << $1 << "\n"; }
+|   T_IntConstant           { 
+                                std::cout << "\tpush " << $1 << "\n";
+                            }
+|   T_FloatConstant         { 
+                                std::cout << "\tpushf " << $1 << "\n"; 
+                            }
+|   T_Identifier            { 
+                                if (!isAccessible($1)) {
+                                    std::cerr << "Error: Variable " << $1 << " is not declared\n";
+                                    exit(1);
+                                }
+                                std::cout << "\tpush " << $1 << "\n"; 
+                            }
 |   ReadInt                 { /* empty */ }
 |   CallExpr                { /* empty */ }
 |   '(' Expr ')'            { /* empty */ }
@@ -240,6 +262,6 @@ ReadInt:
 
 int main() {
     scopes = std::stack<SymbolTable>();
-    
+    enterScope();
     return yyparse();
 }

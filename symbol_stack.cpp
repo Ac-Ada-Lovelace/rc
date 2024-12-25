@@ -11,26 +11,26 @@ std::stack<SymbolTable> scopes;
 std::string lastType;
 std::string nowType;
 
-std::string gerLastType()
+std::string getLastType()
 {
-    std::cout << "lastType: " << lastType << std::endl;
+    std::cout << "\nlastType: " << lastType << std::endl;
     return lastType;
 }
 void setLastType(std::string type)
 {
-    std::cout << "setLastType: " << type << std::endl;
+    std::cout << "\nsetLastType: " << type << std::endl;
     lastType = type;
 }
 
 std::string getNowType()
 {
-    std::cout << "nowType: " << nowType << std::endl;
+    std::cout << "\nnowType: " << nowType << std::endl;
     return nowType;
 }
 
 void setNowType(std::string type)
 {
-    std::cout << "setNowType: " << type << std::endl;
+    std::cout << "\nsetNowType: " << type << std::endl;
     nowType = type;
 }
 
@@ -106,6 +106,18 @@ int isAccessible(const std::string& identifier)
     }
 }
 
+void printStack(){
+    auto tempStack = scopes;
+    while (!tempStack.empty())
+    {
+        for (auto it = tempStack.top().begin(); it != tempStack.top().end(); ++it)
+        {
+            std::cerr << it->first << " " << it->second.type << std::endl;
+        }
+        tempStack.pop();
+    }
+}
+
 Symbol accessSymbol(const std::string& identifier)
 {
     Symbol* symbol = findSymbol(identifier);
@@ -118,3 +130,33 @@ Symbol accessSymbol(const std::string& identifier)
         return Symbol(SymbolKind::Variable, "", "");
     }
 }
+
+
+// int main(){
+//     enterScope();
+//     declareVariable("int", "a");
+//     declareVariable("int", "b");
+
+//     std::cout << "a: " << isAccessible("a") << std::endl; // 1
+
+//     std::cout << "b: " << isAccessible("b") << std::endl; // 1
+
+
+//     enterScope();
+
+//     declareVariable("int", "c");
+
+//     std::cout << "c: " << isAccessible("c") << std::endl; // 1
+
+//     std::cout << "a: " << isAccessible("a") << std::endl; // 1
+
+//     exitScope();
+
+//     std::cout << "c: " << isAccessible("c") << std::endl; // 0
+
+//     exitScope();
+
+//     std::cout << "a: " << isAccessible("a") << std::endl; // 0
+    
+
+// }

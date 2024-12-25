@@ -50,4 +50,6 @@ int declareFunction(const std::string& type, const std::string& identifier);
 int isAccessible(const std::string& identifier);
 Symbol* getSymbol(const std::string& identifier);
 
+
+void printStack();
 #endif // SYMBOL_STACK_H
