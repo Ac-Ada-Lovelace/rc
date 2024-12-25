@@ -21,7 +21,7 @@ extern std::string nowType;
 WHITESPACE          ([ \t\r\a]+)
 SINGLE_COMMENT1     ("//"[^\n]*)
 SINGLE_COMMENT2     ("#"[^\n]*)
-OPERATOR            ([+*-/%=,;!<>(){}])
+OPERATOR            ([+*-/%=,;!<>(){}[\]])
 INTEGER             ([0-9]+)
 FLOAT               ([0-9]+\.[0-9]+)
 IDENTIFIER          ([_a-zA-Z][_a-zA-Z0-9]*)
@@ -53,6 +53,9 @@ STRING              (\042[^\042\n]*\042)
 "!="                { return T_Ne; }
 "&&"                { return T_And; }
 "||"                { return T_Or; }
+"&"                 { return T_Addr; }  // 取址操作符
+"*"                 { return T_Deref; } // 按址取值操作符
+
 
 {INTEGER}           { _DUPTEXT return T_IntConstant; }
 {FLOAT}             { _DUPTEXT return T_FloatConstant; }

@@ -28,6 +28,8 @@ extern std::string nowType;
 %token T_Int T_Float T_Void T_Return T_Print T_ReadInt T_While
 %token T_If T_Else T_Break T_Continue T_Le T_Ge T_Eq T_Ne
 %token T_And T_Or T_IntConstant T_FloatConstant T_StringConstant T_Identifier
+%token T_Addr T_Deref
+
 
 %left '='
 %left T_Or
@@ -37,7 +39,8 @@ extern std::string nowType;
 %left '+' '-'
 %left '*' '/' '%'
 %left '!'
-
+%left T_Addr T_Deref
+%left '[' ']'
 %%
 
 Program:
@@ -248,6 +251,29 @@ Expr:
                                 }
                                 std::cout << "\tpush " << $1 << "\n"; 
                             }
+|   T_Identifier '[' Expr ']' {
+                                if (!isAccessible($1)) {
+                                    std::cerr << "Error: Variable " << $1 << " is not declared\n";
+                                    exit(1);
+                                }
+                                // expr 应当已经在栈顶
+                                // &(a[4]) = a + 4*sizeof(int) 
+                                int size = getVariableSize($1);
+                                std::cout << "\tpush " << size << "\n";
+                                std::cout << "\tmul" << "\n";
+                                std::cout << "\tpush " << $1 << "\n";
+                                std::cout << "\tadd" << "\n";
+                                std::cout << "\tderef" << "\n";
+                            }
+|   T_Addr T_Identifier     { 
+                                if (!isAccessible($2)) {
+                                    std::cerr << "Error: Variable " << $2 << " is not declared\n";
+                                    exit(1);
+                                }
+                                std::cout << "\taddr " << $2 << "\n"; 
+                            }
+|   T_Deref Expr            { std::cout << "\tderef\n"; }
+
 |   ReadInt                 { /* empty */ }
 |   CallExpr                { /* empty */ }
 |   '(' Expr ')'            { /* empty */ }
