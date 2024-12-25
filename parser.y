@@ -23,7 +23,6 @@ extern std::stack<SymbolTable> scopes;
 extern std::string lastType;
 extern std::string nowType;
 
-
 %}
 
 %token T_Int T_Float T_Void T_Return T_Print T_ReadInt T_While
@@ -52,8 +51,7 @@ FuncDecl:
 ;
 
 RetType:
-    T_Int                   { /* empty */ }
-|   T_Float                 { /* empty */ }
+    Type                    { /* empty */ }
 |   T_Void                  { /* empty */ }
 ;
 
@@ -79,21 +77,20 @@ VarDecls:
 
 VarDecl:
     Type T_Identifier      {
-                                setLastType(nowType);
-
-                                declareVariable($2, getNowType());
+                                
+                                declareVariable($1, $2);
                                 std::cout << "\tvar " << $2; 
                             }
 |   VarDecl ',' T_Identifier
                             {   
-                                
-                                declareVariable($3, lastType);
+                                declareVariable(lastType, $3);
                                 std::cout << ", " << $3; }
 ;
 
 Type:
-    T_Int                   { setLastType("int"); } 
-    T_Float                 { setLastType("float"); }
+    T_Int                   { $$ = "int"; setLastType($$); } 
+|   T_Float                 { $$ = "float"; setLastType($$); }
+;
 
 Stmts:
     /* empty */             { /* empty */ }
@@ -114,7 +111,12 @@ Stmt:
 
 AssignStmt:
     T_Identifier '=' Expr ';'
-                            { std::cout << "\tpop " << $1 << "\n\n"; }
+                            { 
+                                if (!assignVariable($1)) {
+                                    std::cerr << "Error: Variable " << $1 << " is not declared\n";
+                                    exit(1);
+                                }
+                                std::cout << "\tpop " << $1 << "\n\n"; }
 ;
 
 PrintStmt:
