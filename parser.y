@@ -42,7 +42,7 @@ Program:
 ;
 
 FuncDecl:
-    RetType FuncName '(' Args ')' '{' VarDecls Stmts '}'
+    RetType FuncName '(' Args ')' '{'  Stmts '}'
                             { std::cout << "ENDFUNC\n\n"; }
 ;
 
@@ -91,6 +91,7 @@ Stmt:
 |   WhileStmt               { /* empty */ }
 |   BreakStmt               { /* empty */ }
 |   ContinueStmt            { /* empty */ }
+|   VarDecls                { /* empty */ }
 ;
 
 AssignStmt:

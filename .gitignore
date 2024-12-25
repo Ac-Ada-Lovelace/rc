@@ -5,3 +5,9 @@ lex.yy.c
 y.output
 y.tab.c
 y.tab.h
+
+
+a.c 
+a.asm
+
+tcc
