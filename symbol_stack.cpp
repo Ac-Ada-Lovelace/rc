@@ -71,6 +71,27 @@ Symbol* findSymbol(const std::string& identifier)
     return nullptr;
 }
 
+int getSymbolSize(const std::string& identifier)
+{
+    auto symbol = findSymbol(identifier);
+    if (symbol != nullptr)
+    {
+        return getSymbolSize(*symbol);
+    }
+}
+
+int getSymbolSize(const Symbol& symbol)
+{
+    if (symbol.kind == SymbolKind::Variable)
+    {
+        return 4;
+    }
+    else
+    {
+        return 0;
+    }
+}
+
 int declareVariable(const std::string& type, const std::string& identifier)
 {
     if (findSymbol(identifier) != nullptr)
@@ -89,6 +110,45 @@ int declareFunction(const std::string& type, const std::string& identifier)
         return -1;
     }
     Symbol symbol(SymbolKind::Function, type, identifier);
+    addSymbol(symbol);
+    return 0;
+}
+
+int getTypeSize(const std::string& type)
+{
+    if (type == "int")
+    {
+        return 4;
+    }
+    else if (type == "float")
+    {
+        return 4;
+    }
+    else
+    {
+        std::cerr << "Error: Unknown type " << type << std::endl;
+        exit(1);
+    }
+}
+
+int declareArray(const std::string& type, const std::string& name, const std::string& dims) {
+    if (isAccessible(name) == 1) {
+        return -1;
+    }
+    int typeSize = getTypeSize(type);
+    int totalSize = typeSize;
+
+    // Calculate total size for multi-dimensional arrays
+    size_t pos = 0;
+    while ((pos = dims.find('[', pos)) != std::string::npos) {
+        size_t endPos = dims.find(']', pos);
+        int dimSize = std::stoi(dims.substr(pos + 1, endPos - pos - 1));
+        totalSize *= dimSize;
+        pos = endPos + 1;
+    }
+
+    Symbol symbol(SymbolKind::Variable, type, name);
+    symbol.size = totalSize;
     addSymbol(symbol);
     return 0;
 }

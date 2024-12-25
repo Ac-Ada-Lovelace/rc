@@ -93,7 +93,21 @@ VarDecl:
                                     exit(1);
                                 }
                                 std::cout << ", " << $3; }
+|   Type T_Identifier ArrayDims
+                            {
+                                if (declareArray(getLastType(), $2, $3) == -1) {
+                                    std::cerr << "Error: Array " << $2 << " is already declared\n";
+                                    exit(1);
+                                }
+                                std::cout << "\tarray " << $2 << $3 << "\n";
+                            }
 ;
+
+ArrayDims:
+    '[' T_IntConstant ']'   { $$ = "[" + std::string($2) + "]"; }
+|   ArrayDims '[' T_IntConstant ']' { $$ = $1 + "[" + std::string($3) + "]"; }
+;
+
 
 Type:
     T_Int                   { std::string ts = "int"; setLastType(ts); } 
