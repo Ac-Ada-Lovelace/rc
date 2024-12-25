@@ -4,7 +4,7 @@ SCANNER  = scanner.l
 PARSER   = parser.y
 
 CC       = g++
-OBJ      = lex.yy.o y.tab.o
+OBJ      = lex.yy.o y.tab.o symbol_stack.o
 CFLAGS   = -std=c++11
 TESTOUT  = $(basename $(TESTFILE)).asm
 OUTFILES = lex.yy.c y.tab.c y.tab.h y.output $(OUT)

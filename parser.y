@@ -1,7 +1,7 @@
 %{
 #include <iostream>
 #include <cstdlib>
-
+#include "symbol_stack.h"
 
 void yyerror(const char*);
 #define YYSTYPE char *
@@ -19,11 +19,16 @@ int ww = 0, wtop = -1, wstack[100];
 
 int yylex(void); // Add this line to avoid warning
 
+extern std::stack<SymbolTable> scopes;
+extern std::string lastType;
+extern std::string nowType;
+
+
 %}
 
-%token T_Int T_Void T_Return T_Print T_ReadInt T_While
+%token T_Int T_Float T_Void T_Return T_Print T_ReadInt T_While
 %token T_If T_Else T_Break T_Continue T_Le T_Ge T_Eq T_Ne
-%token T_And T_Or T_IntConstant T_StringConstant T_Identifier
+%token T_And T_Or T_IntConstant T_FloatConstant T_StringConstant T_Identifier
 
 %left '='
 %left T_Or
@@ -48,6 +53,7 @@ FuncDecl:
 
 RetType:
     T_Int                   { /* empty */ }
+|   T_Float                 { /* empty */ }
 |   T_Void                  { /* empty */ }
 ;
 
@@ -61,8 +67,8 @@ Args:
 ;
 
 _Args:
-    T_Int T_Identifier      { std::cout << "\targ " << $2; }
-|   _Args ',' T_Int T_Identifier
+    Type T_Identifier      { std::cout << "\targ " << $2; }
+|   _Args ',' Type T_Identifier
                             { std::cout << ", " << $4; }
 ;
 
@@ -72,10 +78,22 @@ VarDecls:
 ;
 
 VarDecl:
-    T_Int T_Identifier      { std::cout << "\tvar " << $2; }
+    Type T_Identifier      {
+                                setLastType(nowType);
+
+                                declareVariable($2, getNowType());
+                                std::cout << "\tvar " << $2; 
+                            }
 |   VarDecl ',' T_Identifier
-                            { std::cout << ", " << $3; }
+                            {   
+                                
+                                declareVariable($3, lastType);
+                                std::cout << ", " << $3; }
 ;
+
+Type:
+    T_Int                   { setLastType("int"); } 
+    T_Float                 { setLastType("float"); }
 
 Stmts:
     /* empty */             { /* empty */ }
@@ -219,5 +237,7 @@ ReadInt:
 %%
 
 int main() {
+    scopes = std::stack<SymbolTable>();
+    
     return yyparse();
 }

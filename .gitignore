@@ -11,3 +11,5 @@ a.c
 a.asm
 
 tcc
+
+symbol_stack

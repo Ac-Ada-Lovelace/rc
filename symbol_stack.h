@@ -28,11 +28,26 @@ using SymbolTable = std::unordered_map<std::string, Symbol>;
 
 // Global variables
 extern std::stack<SymbolTable> scopes;
-
+extern std::string lastType;
+extern std::string nowType;
 // Function declarations
+std::string getLastType();
+void setLastType(std::string type);
+std::string getNowType();
+void setNowType(std::string type);
+
+
 void enterScope();
 void exitScope();
+
+
 void addSymbol(const Symbol& symbol);
 Symbol* findSymbol(const std::string& identifier);
+
+int declareVariable(const std::string& type, const std::string& identifier);
+int declareFunction(const std::string& type, const std::string& identifier);
+
+int isAccessible(const std::string& identifier);
+Symbol* getSymbol(const std::string& identifier);
 
 #endif // SYMBOL_STACK_H

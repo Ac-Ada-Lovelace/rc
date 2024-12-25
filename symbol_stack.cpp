@@ -8,29 +8,62 @@
 
 // Global variable definition
 std::stack<SymbolTable> scopes;
+std::string lastType;
+std::string nowType;
 
-void enterScope() {
+std::string gerLastType()
+{
+    std::cout << "lastType: " << lastType << std::endl;
+    return lastType;
+}
+void setLastType(std::string type)
+{
+    std::cout << "setLastType: " << type << std::endl;
+    lastType = type;
+}
+
+std::string getNowType()
+{
+    std::cout << "nowType: " << nowType << std::endl;
+    return nowType;
+}
+
+void setNowType(std::string type)
+{
+    std::cout << "setNowType: " << type << std::endl;
+    nowType = type;
+}
+
+void enterScope()
+{
     scopes.push(SymbolTable());
 }
 
-void exitScope() {
-    if (!scopes.empty()) {
+void exitScope()
+{
+    if (!scopes.empty())
+    {
         scopes.pop();
     }
 }
 
-void addSymbol(const Symbol& symbol) {
-    if (scopes.empty()) {
+void addSymbol(const Symbol& symbol)
+{
+    if (scopes.empty())
+    {
         return;
     }
     scopes.top()[symbol.identifier] = symbol;
 }
 
-Symbol* findSymbol(const std::string& identifier) {
+Symbol* findSymbol(const std::string& identifier)
+{
     auto tempStack = scopes;
-    while (!tempStack.empty()) {
+    while (!tempStack.empty())
+    {
         auto it = tempStack.top().find(identifier);
-        if (it != tempStack.top().end()) {
+        if (it != tempStack.top().end())
+        {
             return &it->second;
         }
         tempStack.pop();
@@ -38,8 +71,10 @@ Symbol* findSymbol(const std::string& identifier) {
     return nullptr;
 }
 
-int declareVariable(const std::string& type, const std::string& identifier) {
-    if (findSymbol(identifier) != nullptr) {
+int declareVariable(const std::string& type, const std::string& identifier)
+{
+    if (findSymbol(identifier) != nullptr)
+    {
         return -1;
     }
     Symbol symbol(SymbolKind::Variable, type, identifier);
@@ -47,8 +82,10 @@ int declareVariable(const std::string& type, const std::string& identifier) {
     return 0;
 }
 
-int declareFunction(const std::string& type, const std::string& identifier) {
-    if (findSymbol(identifier) != nullptr) {
+int declareFunction(const std::string& type, const std::string& identifier)
+{
+    if (findSymbol(identifier) != nullptr)
+    {
         return -1;
     }
     Symbol symbol(SymbolKind::Function, type, identifier);
@@ -56,24 +93,28 @@ int declareFunction(const std::string& type, const std::string& identifier) {
     return 0;
 }
 
-int isAccessible(const std::string& identifier) {
+int isAccessible(const std::string& identifier)
+{
     Symbol* symbol = findSymbol(identifier);
-    if (symbol != nullptr) {
+    if (symbol != nullptr)
+    {
         return 1;
-    } else {
+    }
+    else
+    {
         return 0;
     }
 }
 
-Symbol accessSymbol(const std::string& identifier) {
+Symbol accessSymbol(const std::string& identifier)
+{
     Symbol* symbol = findSymbol(identifier);
-    if (symbol != nullptr) {
+    if (symbol != nullptr)
+    {
         return *symbol;
-    } else {
+    }
+    else
+    {
         return Symbol(SymbolKind::Variable, "", "");
     }
-}
-
-int main() {
-    
 }

@@ -3,12 +3,18 @@
 #include "y.tab.h"
 #include <cstring>
 #include <iostream>
+#include "symbol_stack.h"
+
 
 int cur_line = 1;
 void yyerror(const char *msg);
 void unrecognized_char(char c);
 void unterminate_string();
 #define _DUPTEXT {yylval = strdup(yytext);}
+
+extern std::stack<SymbolTable> scopes;
+extern std::string lastType;
+extern std::string nowType;
 %}
 
 /* note \042 is '"' */
@@ -17,6 +23,7 @@ SINGLE_COMMENT1     ("//"[^\n]*)
 SINGLE_COMMENT2     ("#"[^\n]*)
 OPERATOR            ([+*-/%=,;!<>(){}])
 INTEGER             ([0-9]+)
+FLOAT               ([0-9]+\.[0-9]+)
 IDENTIFIER          ([_a-zA-Z][_a-zA-Z0-9]*)
 UNTERM_STRING       (\042[^\042\n]*)
 STRING              (\042[^\042\n]*\042)
@@ -30,6 +37,7 @@ STRING              (\042[^\042\n]*\042)
 
 {OPERATOR}          { return yytext[0]; }
 "int"               { return T_Int; }
+"float"             { return T_Float; }
 "void"              { return T_Void; }
 "return"            { return T_Return; }
 "print"             { return T_Print; }
@@ -47,6 +55,7 @@ STRING              (\042[^\042\n]*\042)
 "||"                { return T_Or; }
 
 {INTEGER}           { _DUPTEXT return T_IntConstant; }
+{FLOAT}             { _DUPTEXT return T_FloatConstant; }
 {STRING}            { _DUPTEXT return T_StringConstant; }
 {IDENTIFIER}        { _DUPTEXT return T_Identifier; }
 
