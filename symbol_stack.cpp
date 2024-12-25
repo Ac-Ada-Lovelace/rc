@@ -7,6 +7,9 @@
 #include <vector>
 
 // Global variable definition
+std::unordered_map<std::string, std::vector<int>> arrayDimensionsMap;
+
+
 std::stack<SymbolTable> scopes;
 std::string lastType;
 std::string nowType;
@@ -78,7 +81,12 @@ int getSymbolSize(const std::string& identifier)
     {
         return getSymbolSize(*symbol);
     }
+    else
+    {
+        return 0;
+    }
 }
+
 
 int getSymbolSize(const Symbol& symbol)
 {
@@ -140,16 +148,22 @@ int declareArray(const std::string& type, const std::string& name, const std::st
 
     // Calculate total size for multi-dimensional arrays
     size_t pos = 0;
+    std::vector<int> dimensions;
     while ((pos = dims.find('[', pos)) != std::string::npos) {
         size_t endPos = dims.find(']', pos);
         int dimSize = std::stoi(dims.substr(pos + 1, endPos - pos - 1));
         totalSize *= dimSize;
+        dimensions.push_back(dimSize);
         pos = endPos + 1;
     }
 
     Symbol symbol(SymbolKind::Variable, type, name);
     symbol.size = totalSize;
     addSymbol(symbol);
+
+    // Store dimensions in the global map
+    arrayDimensionsMap[name] = dimensions;
+
     return 0;
 }
 
@@ -192,6 +206,14 @@ Symbol accessSymbol(const std::string& identifier)
 }
 
 
+std::vector<int> getArrayDimensions(const std::string& name) {
+    if (arrayDimensionsMap.find(name) != arrayDimensionsMap.end()) {
+        return arrayDimensionsMap[name];
+    }
+    return std::vector<int>();
+}
+
+// ...existing code...
 // int main(){
 //     enterScope();
 //     declareVariable("int", "a");

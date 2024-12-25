@@ -49,11 +49,13 @@ Symbol* findSymbol(const std::string& identifier);
 
 int declareVariable(const std::string& type, const std::string& identifier);
 int declareFunction(const std::string& type, const std::string& identifier);
-int declareArray(const std::string& type, const std::string& name, int size);
+int declareArray(const std::string& type, const std::string& name, const std::string& dims);
 int isAccessible(const std::string& identifier);
 Symbol* getSymbol(const std::string& identifier);
 
 int getSymbolSize(const std::string& identifier);
 int getSymbolSize(const Symbol& symbol);
+
+std::vector<int> getArrayDimensions(const std::string& name);
 void printStack();
 #endif  // SYMBOL_STACK_H

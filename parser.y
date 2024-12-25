@@ -2,7 +2,8 @@
 #include <iostream>
 #include <cstdlib>
 #include "symbol_stack.h"
-
+#include <cstring> // Include this header for strdup
+#include <string>
 void yyerror(const char*);
 #define YYSTYPE char *
 
@@ -28,8 +29,7 @@ extern std::string nowType;
 %token T_Int T_Float T_Void T_Return T_Print T_ReadInt T_While
 %token T_If T_Else T_Break T_Continue T_Le T_Ge T_Eq T_Ne
 %token T_And T_Or T_IntConstant T_FloatConstant T_StringConstant T_Identifier
-%token T_Addr T_Deref
-
+%token T_Addr 
 
 %left '='
 %left T_Or
@@ -104,14 +104,14 @@ VarDecl:
 ;
 
 ArrayDims:
-    '[' T_IntConstant ']'   { $$ = "[" + std::string($2) + "]"; }
-|   ArrayDims '[' T_IntConstant ']' { $$ = $1 + "[" + std::string($3) + "]"; }
+    '[' T_IntConstant ']'   { $$ = strdup((std::string("[") + $2 + "]").c_str()); }
+|   ArrayDims '[' T_IntConstant ']' { $$ = strdup((std::string($1) + "[" + $3 + "]").c_str()); }
 ;
-
 
 Type:
     T_Int                   { std::string ts = "int"; setLastType(ts); } 
 |   T_Float                 { std::string ts = "float"; setLastType(ts); }
+|   Type '*'               { std::string ts = getLastType() + "*"; setLastType(ts); }
 ;
 
 Stmts:
@@ -265,15 +265,18 @@ Expr:
                                 }
                                 std::cout << "\tpush " << $1 << "\n"; 
                             }
-|   T_Identifier '[' Expr ']' {
+|   T_Identifier ArrayAccess {
                                 if (!isAccessible($1)) {
                                     std::cerr << "Error: Variable " << $1 << " is not declared\n";
                                     exit(1);
                                 }
-                                // expr 应当已经在栈顶
-                                // &(a[4]) = a + 4*sizeof(int) 
-                                int size = getVariableSize($1);
-                                std::cout << "\tpush " << size << "\n";
+                                // 计算多维数组的偏移量
+                                std::vector<int> dimensions = getArrayDimensions($1);
+                                int totalSize = 1;
+                                for (int dim : dimensions) {
+                                    totalSize *= dim;
+                                }
+                                std::cout << "\tpush " << totalSize << "\n";
                                 std::cout << "\tmul" << "\n";
                                 std::cout << "\tpush " << $1 << "\n";
                                 std::cout << "\tadd" << "\n";
@@ -286,11 +289,35 @@ Expr:
                                 }
                                 std::cout << "\taddr " << $2 << "\n"; 
                             }
-|   T_Deref Expr            { std::cout << "\tderef\n"; }
+|   "@" T_Identifier { std::cout << "\tderef\n"; } // Add support for dereferencing
 
 |   ReadInt                 { /* empty */ }
 |   CallExpr                { /* empty */ }
 |   '(' Expr ')'            { /* empty */ }
+;
+
+ArrayAccess:
+    '[' Expr ']' {
+                    // expr 应当已经在栈顶
+                    std::vector<int> dimensions = getArrayDimensions($1);
+                    int totalSize = 1;
+                    for (int dim : dimensions) {
+                        totalSize *= dim;
+                    }
+                    std::cout << "\tpush " << totalSize << "\n";
+                    std::cout << "\tmul" << "\n";
+                }
+|   ArrayAccess '[' Expr ']' {
+                    // expr 应当已经在栈顶
+                    std::vector<int> dimensions = getArrayDimensions($1);
+                    int totalSize = 1;
+                    for (int dim : dimensions) {
+                        totalSize *= dim;
+                    }
+                    std::cout << "\tpush " << totalSize << "\n";
+                    std::cout << "\tmul" << "\n";
+                    std::cout << "\tadd" << "\n";
+                }
 ;
 
 ReadInt:

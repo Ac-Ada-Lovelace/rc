@@ -54,7 +54,6 @@ STRING              (\042[^\042\n]*\042)
 "&&"                { return T_And; }
 "||"                { return T_Or; }
 "&"                 { return T_Addr; }  // 取址操作符
-"*"                 { return T_Deref; } // 按址取值操作符
 
 
 {INTEGER}           { _DUPTEXT return T_IntConstant; }
