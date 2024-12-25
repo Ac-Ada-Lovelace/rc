@@ -1,6 +1,8 @@
 %{
-#include <stdio.h>
-#include <stdlib.h>
+#include <iostream>
+#include <cstdlib>
+
+
 void yyerror(const char*);
 #define YYSTYPE char *
 
@@ -41,7 +43,7 @@ Program:
 
 FuncDecl:
     RetType FuncName '(' Args ')' '{' VarDecls Stmts '}'
-                            { printf("ENDFUNC\n\n"); }
+                            { std::cout << "ENDFUNC\n\n"; }
 ;
 
 RetType:
@@ -50,29 +52,29 @@ RetType:
 ;
 
 FuncName:
-    T_Identifier            { printf("FUNC @%s:\n", $1); }
+    T_Identifier            { std::cout << "FUNC @" << $1 << ":\n"; }
 ;
 
 Args:
     /* empty */             { /* empty */ }
-|   _Args                   { printf("\n\n"); }
+|   _Args                   { std::cout << "\n\n"; }
 ;
 
 _Args:
-    T_Int T_Identifier      { printf("\targ %s", $2); }
+    T_Int T_Identifier      { std::cout << "\targ " << $2; }
 |   _Args ',' T_Int T_Identifier
-                            { printf(", %s", $4); }
+                            { std::cout << ", " << $4; }
 ;
 
 VarDecls:
     /* empty */             { /* empty */ }
-|   VarDecls VarDecl ';'    { printf("\n\n"); }
+|   VarDecls VarDecl ';'    { std::cout << "\n\n"; }
 ;
 
 VarDecl:
-    T_Int T_Identifier      { printf("\tvar %s", $2); }
+    T_Int T_Identifier      { std::cout << "\tvar " << $2; }
 |   VarDecl ',' T_Identifier
-                            { printf(", %s", $3); }
+                            { std::cout << ", " << $3; }
 ;
 
 Stmts:
@@ -93,12 +95,12 @@ Stmt:
 
 AssignStmt:
     T_Identifier '=' Expr ';'
-                            { printf("\tpop %s\n\n", $1); }
+                            { std::cout << "\tpop " << $1 << "\n\n"; }
 ;
 
 PrintStmt:
     T_Print '(' T_StringConstant PActuals ')' ';'
-                            { printf("\tprint %s\n\n", $3); }
+                            { std::cout << "\tprint " << $3 << "\n\n"; }
 ;
 
 PActuals:
@@ -107,12 +109,12 @@ PActuals:
 ;
 
 CallStmt:
-    CallExpr ';'            { printf("\tpop\n\n"); }
+    CallExpr ';'            { std::cout << "\tpop\n\n"; }
 ;
 
 CallExpr:
     T_Identifier '(' Actuals ')'
-                            { printf("\t$%s\n", $1); }
+                            { std::cout << "\t$" << $1 << "\n"; }
 ;
 
 Actuals:
@@ -121,8 +123,8 @@ Actuals:
 ;
 
 ReturnStmt:
-    T_Return Expr ';'       { printf("\tret ~\n\n"); }
-|   T_Return ';'            { printf("\tret\n\n"); }
+    T_Return Expr ';'       { std::cout << "\tret ~\n\n"; }
+|   T_Return ';'            { std::cout << "\tret\n\n"; }
 ;
 
 IfStmt:
@@ -141,15 +143,15 @@ StmtsBlock:
 ;
 
 If:
-    T_If            { _BEG_IF; printf("_begIf_%d:\n", _i); }
+    T_If            { _BEG_IF; std::cout << "_begIf_" << _i << ":\n"; }
 ;
 
 Then:
-    /* empty */     { printf("\tjz _elIf_%d\n", _i); }
+    /* empty */     { std::cout << "\tjz _elIf_" << _i << "\n"; }
 ;
 
 EndThen:
-    /* empty */     { printf("\tjmp _endIf_%d\n_elIf_%d:\n", _i, _i); }
+    /* empty */     { std::cout << "\tjmp _endIf_" << _i << "\n_elIf_" << _i << ":\n"; }
 ;
 
 Else:
@@ -157,7 +159,7 @@ Else:
 ;
 
 EndIf:
-    /* empty */     { printf("_endIf_%d:\n\n", _i); _END_IF; }
+    /* empty */     { std::cout << "_endIf_" << _i << ":\n\n"; _END_IF; }
 ;
 
 WhileStmt:
@@ -166,44 +168,43 @@ WhileStmt:
 ;
 
 While:
-    T_While         { _BEG_WHILE; printf("_begWhile_%d:\n", _w); }
+    T_While         { _BEG_WHILE; std::cout << "_begWhile_" << _w << ":\n"; }
 ;
 
 Do:
-    /* empty */     { printf("\tjz _endWhile_%d\n", _w); }
+    /* empty */     { std::cout << "\tjz _endWhile_" << _w << "\n"; }
 ;
 
 EndWhile:
-    /* empty */     { printf("\tjmp _begWhile_%d\n_endWhile_%d:\n\n", 
-                                _w, _w); _END_WHILE; }
+    /* empty */     { std::cout << "\tjmp _begWhile_" << _w << "\n_endWhile_" << _w << ":\n\n"; _END_WHILE; }
 ;
 
 BreakStmt:
-    T_Break ';'     { printf("\tjmp _endWhile_%d\n", _w); }
+    T_Break ';'     { std::cout << "\tjmp _endWhile_" << _w << "\n"; }
 ;
 
 ContinueStmt:
-    T_Continue ';'  { printf("\tjmp _begWhile_%d\n", _w); }
+    T_Continue ';'  { std::cout << "\tjmp _begWhile_" << _w << "\n"; }
 ;
 
 Expr:
-    Expr '+' Expr           { printf("\tadd\n"); }
-|   Expr '-' Expr           { printf("\tsub\n"); }
-|   Expr '*' Expr           { printf("\tmul\n"); }
-|   Expr '/' Expr           { printf("\tdiv\n"); }
-|   Expr '%' Expr           { printf("\tmod\n"); }
-|   Expr '>' Expr           { printf("\tcmpgt\n"); }
-|   Expr '<' Expr           { printf("\tcmplt\n"); }
-|   Expr T_Ge Expr          { printf("\tcmpge\n"); }
-|   Expr T_Le Expr          { printf("\tcmple\n"); }
-|   Expr T_Eq Expr          { printf("\tcmpeq\n"); }
-|   Expr T_Ne Expr          { printf("\tcmpne\n"); }
-|   Expr T_Or Expr          { printf("\tor\n"); }
-|   Expr T_And Expr         { printf("\tand\n"); }
-|   '-' Expr %prec '!'      { printf("\tneg\n"); }
-|   '!' Expr                { printf("\tnot\n"); }
-|   T_IntConstant           { printf("\tpush %s\n", $1); }
-|   T_Identifier            { printf("\tpush %s\n", $1); }
+    Expr '+' Expr           { std::cout << "\tadd\n"; }
+|   Expr '-' Expr           { std::cout << "\tsub\n"; }
+|   Expr '*' Expr           { std::cout << "\tmul\n"; }
+|   Expr '/' Expr           { std::cout << "\tdiv\n"; }
+|   Expr '%' Expr           { std::cout << "\tmod\n"; }
+|   Expr '>' Expr           { std::cout << "\tcmpgt\n"; }
+|   Expr '<' Expr           { std::cout << "\tcmplt\n"; }
+|   Expr T_Ge Expr          { std::cout << "\tcmpge\n"; }
+|   Expr T_Le Expr          { std::cout << "\tcmple\n"; }
+|   Expr T_Eq Expr          { std::cout << "\tcmpeq\n"; }
+|   Expr T_Ne Expr          { std::cout << "\tcmpne\n"; }
+|   Expr T_Or Expr          { std::cout << "\tor\n"; }
+|   Expr T_And Expr         { std::cout << "\tand\n"; }
+|   '-' Expr %prec '!'      { std::cout << "\tneg\n"; }
+|   '!' Expr                { std::cout << "\tnot\n"; }
+|   T_IntConstant           { std::cout << "\tpush " << $1 << "\n"; }
+|   T_Identifier            { std::cout << "\tpush " << $1 << "\n"; }
 |   ReadInt                 { /* empty */ }
 |   CallExpr                { /* empty */ }
 |   '(' Expr ')'            { /* empty */ }
@@ -211,7 +212,7 @@ Expr:
 
 ReadInt:
     T_ReadInt '(' T_StringConstant ')'
-                            { printf("\treadint %s\n", $3); }
+                            { std::cout << "\treadint " << $3 << "\n"; }
 ;
 
 %%

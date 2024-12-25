@@ -3,8 +3,9 @@ TESTFILE = test.c
 SCANNER  = scanner.l
 PARSER   = parser.y
 
-CC       = gcc
+CC       = g++
 OBJ      = lex.yy.o y.tab.o
+CFLAGS   = -std=c++11
 TESTOUT  = $(basename $(TESTFILE)).asm
 OUTFILES = lex.yy.c y.tab.c y.tab.h y.output $(OUT)
 
@@ -24,7 +25,7 @@ $(TESTOUT): $(TESTFILE) $(OUT)
 	./$(OUT) < $< > $@
 
 $(OUT): $(OBJ)
-	$(CC) -o $(OUT) $(OBJ)
+	$(CC) $(CFLAGS) -o $(OUT) $(OBJ)
 
 lex.yy.c: $(SCANNER) y.tab.c
 	flex $<

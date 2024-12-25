@@ -1,6 +1,9 @@
 %{
 #define YYSTYPE char *
 #include "y.tab.h"
+#include <cstring>
+#include <iostream>
+
 int cur_line = 1;
 void yyerror(const char *msg);
 void unrecognized_char(char c);
@@ -67,6 +70,6 @@ void unterminate_string() {
 }
 
 void yyerror(const char *msg) {
-    fprintf(stderr, "Error at line %d:\n\t%s\n", cur_line, msg);
+    std::cerr << "Error at line " << cur_line << ":\n\t" << msg << std::endl;
     exit(-1);
 }
